@@ -1,0 +1,6 @@
+/* Global styles injected by XcoClaws */
+.xcoclaws-highlight {
+  outline: 2px dashed #6366f1 !important;
+  background-color: rgba(99, 102, 241, 0.1) !important;
+  transition: all 0.3s ease;
+}
