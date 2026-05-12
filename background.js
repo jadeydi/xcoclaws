@@ -1,7 +1,7 @@
 // Background Service Worker (MV3)
 
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('XcoClaws Extension Installed');
+  console.log('XCoClaws Extension Installed');
   
   // 初始化默认设置
   chrome.storage.sync.set({ 

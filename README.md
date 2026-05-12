@@ -1,4 +1,4 @@
-# XcoClaws Chrome Extension
+# XCoClaws Chrome Extension
 
 一个基于 Vite + React + CRXJS 构建的现代 Chrome 扩展基础模版。
 

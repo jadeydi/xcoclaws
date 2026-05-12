@@ -25,7 +25,7 @@ function App() {
       <header>
         <div className="logo">
           <span className="logo-icon">✨</span>
-          <h1>XcoClaws</h1>
+          <h1>XCoClaws</h1>
         </div>
         <button onClick={handleSettings} className="icon-btn">⚙️</button>
       </header>

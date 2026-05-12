@@ -2,7 +2,7 @@ import { initMarkNonFollowers } from './markNonFollowers';
 
 // Content Script - 运行在网页上下文中
 
-console.log('XcoClaws Content Script Loaded');
+console.log('XCoClaws Content Script Loaded');
 
 // 初始化标记没有关注你的用户功能
 initMarkNonFollowers();
