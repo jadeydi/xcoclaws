@@ -9,3 +9,34 @@
   background-color: rgba(239, 68, 68, 0.1) !important; /* Subtle red background */
   border-left: 4px solid #ef4444 !important; /* Red left border for clarity */
 }
+
+.xcoclaws-stats {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  font-size: 11px;
+  color: #71767b;
+  font-weight: normal;
+  background: rgba(113, 118, 123, 0.08);
+  padding: 1px 6px;
+  border-radius: 99px;
+  vertical-align: middle;
+  border: 1px solid rgba(113, 118, 123, 0.15);
+}
+
+.xcoclaws-stat-item {
+  display: flex;
+  align-items: center;
+}
+
+.xcoclaws-stat-item b {
+  color: #1d9bf0;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+.xcoclaws-stat-divider {
+  margin: 0 4px;
+  opacity: 0.5;
+}
+
