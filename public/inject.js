@@ -1,5 +1,5 @@
 (() => {
-  // If already loaded, we don't want to re-hook fetch/XHR, 
+  // If already loaded, we don't want to re-hook fetch/XHR,
   // but we DO want to re-register the specific listeners below.
   const isFirstLoad = !window.__xvmNet;
 
@@ -12,13 +12,13 @@
       if (!url) return;
       for (const sub of reqSubs) {
         if (!sub.matcher.test(url)) continue;
-        try { sub.fn({ url, init, headers, source }); } catch (_) {}
+        try { sub.fn({ url, init, headers, source }); } catch (_) { }
       }
     }
 
     function notifyRes(url, response, source) {
       if (!url) return;
-      // Filter out non-api calls to reduce noise in console if needed, 
+      // Filter out non-api calls to reduce noise in console if needed,
       // but for now let's just log matches.
       for (const sub of resSubs) {
         if (!sub.matcher.test(url)) continue;
@@ -52,7 +52,7 @@
             out[k.toLowerCase()] = headersLike[k];
           }
         }
-      } catch (_) {}
+      } catch (_) { }
       return out;
     }
 
@@ -126,12 +126,28 @@
 
   function scanForTweets(data, url) {
     if (!data) return;
-    console.log('XCoClaws: Intercepted Data from', url, ':', data);
-    
+
+    // Identify query name from URL
+    let queryName = 'Unknown';
+    try {
+      const urlObj = new URL(url);
+      const pathParts = urlObj.pathname.split('/');
+      queryName = pathParts[pathParts.length - 1] || 'GraphQL';
+
+      // For some GraphQL URLs, the query name is in the path after /graphql/
+      // or sometimes it's a long hash. We can check if common names are in the URL.
+      if (url.includes('/BlueVerifiedFollowers')) queryName = 'BlueVerifiedFollowers';
+      else if (url.includes('/Followers')) queryName = 'Followers';
+      else if (url.includes('/Following')) queryName = 'Following';
+      else if (url.includes('/UserByScreenName')) queryName = 'UserByScreenName';
+    } catch (e) { }
+
+    console.log(`XCoClaws: Intercepted ${queryName} Data`);
+
     const foundUsers = [];
     function findUsers(obj) {
       if (!obj || typeof obj !== 'object') return;
-      
+
       // Handle GraphQL User object (has core and legacy)
       if (obj.legacy && (obj.core?.screen_name || obj.legacy.screen_name) && obj.legacy.followers_count !== undefined) {
         foundUsers.push({
@@ -140,8 +156,8 @@
           friends_count: obj.legacy.friends_count || obj.legacy.following_count
         });
         return; // Found a user, don't recurse further into this object
-      } 
-      
+      }
+
       // Handle legacy structures or flattened objects
       if (obj.screen_name && obj.followers_count !== undefined) {
         foundUsers.push({
@@ -158,13 +174,13 @@
         }
       }
     }
-    
+
     findUsers(data);
 
     if (foundUsers.length > 0) {
       console.log(`XCoClaws: Found ${foundUsers.length} users in API response`);
-      window.postMessage({ 
-        type: 'X_STATS_DATA', 
+      window.postMessage({
+        type: 'X_STATS_DATA',
         data: {
           users: foundUsers
         }
@@ -181,13 +197,13 @@
       let data;
       if (source === 'fetch') {
         reportRateLimit(
-          response.headers.get('x-rate-limit-remaining'), 
+          response.headers.get('x-rate-limit-remaining'),
           response.headers.get('x-rate-limit-reset')
         );
         data = await response.clone().json();
       } else {
         reportRateLimit(
-          response.getHeader('x-rate-limit-remaining'), 
+          response.getHeader('x-rate-limit-remaining'),
           response.getHeader('x-rate-limit-reset')
         );
         data = response.json();
@@ -208,7 +224,7 @@
         data = response.json();
       }
       scanForTweets(data, url);
-    } catch (e) {}
+    } catch (e) { }
   });
 
 })();

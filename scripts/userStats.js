@@ -32,10 +32,9 @@ export function updateAllUserCells() {
   const userCells = document.querySelectorAll('[data-testid="UserCell"]');
   userCells.forEach(cell => {
     // Extract screen name (handle)
-    const handleEl = cell.querySelector('a[href^="/"] [dir="ltr"]');
     let screenName = '';
-    
-    // Check all spans for handle pattern
+
+    // Check all links or spans for handle pattern
     const spans = cell.querySelectorAll('span');
     for (const span of spans) {
       const text = span.innerText;
@@ -45,8 +44,23 @@ export function updateAllUserCells() {
       }
     }
 
+    if (!screenName) {
+      // Try to get from link href as fallback
+      const link = cell.querySelector('a[href^="/"]');
+      if (link) {
+        const parts = link.getAttribute('href').split('/');
+        if (parts.length > 1) {
+          const name = parts[1].toLowerCase();
+          // Exclude known non-user paths
+          if (!['home', 'explore', 'notifications', 'messages', 'search', 'settings'].includes(name)) {
+            screenName = name;
+          }
+        }
+      }
+    }
+
     if (!screenName) return;
-    
+
     const stats = userStatsMap.get(screenName);
     if (stats) {
       injectStats(cell, stats);
@@ -55,48 +69,67 @@ export function updateAllUserCells() {
 }
 
 function injectStats(cell, stats) {
-  // Find the name container - specifically the display name part
+  // Find the target container where we want to append the stats
+  // We prefer the name area flex container
+  let target = null;
+
+  // Method 1: Look for data-testid="User-Name"
   const nameContainer = cell.querySelector('[data-testid="User-Name"]');
-  if (!nameContainer) return;
+  if (nameContainer) {
+    // Inside User-Name, there's usually a flex row containing display name and badges
+    const flexRow = nameContainer.querySelector('div.r-18u37iz');
+    if (flexRow) {
+      target = flexRow;
+    } else {
+      // Fallback to the first dir="ltr" inside User-Name
+      target = nameContainer.querySelector('[dir="ltr"]');
+    }
+  }
 
-  // We want to find the first link's inner container (Display Name)
-  const displayNameLink = nameContainer.querySelector('a');
-  if (!displayNameLink) return;
+  // Method 2: Fallback to the user's specific structure
+  if (!target) {
+    // Look for the flex container inside the link
+    const nameLink = cell.querySelector('a[role="link"] div.r-18u37iz');
+    if (nameLink) {
+      target = nameLink;
+    }
+  }
 
-  const target = displayNameLink.querySelector('[dir="ltr"]');
   if (!target) return;
 
   // Check if already injected
-  const existing = target.querySelector('.xcoclaws-stats');
-  const statsHTML = `<span class="xcoclaws-stat-item">Followers: <b>${formatCount(stats.followers)}</b></span><span class="xcoclaws-stat-divider">·</span><span class="xcoclaws-stat-item">Following: <b>${formatCount(stats.following)}</b></span>`;
+  let statsEl = target.querySelector('.xcoclaws-stats');
+  const statsHTML = `
+    <span class="xcoclaws-stat-item">Fol: <b>${formatCount(stats.followers)}</b></span>
+    <span class="xcoclaws-stat-divider">·</span>
+    <span class="xcoclaws-stat-item">Fing: <b>${formatCount(stats.following)}</b></span>
+  `;
 
-  
-  if (existing) {
-    if (existing.innerHTML !== statsHTML) {
-      existing.innerHTML = statsHTML;
+  if (statsEl) {
+    if (statsEl.getAttribute('data-stats') !== JSON.stringify(stats)) {
+      statsEl.innerHTML = statsHTML;
+      statsEl.setAttribute('data-stats', JSON.stringify(stats));
     }
     return;
   }
 
-  const statsEl = document.createElement('span');
+  statsEl = document.createElement('span');
   statsEl.className = 'xcoclaws-stats';
+  statsEl.setAttribute('data-stats', JSON.stringify(stats));
   statsEl.innerHTML = statsHTML;
-  
-  // Append after the name (which is usually a span or direct text)
+
+  // Append to target
   target.appendChild(statsEl);
 }
 
 
 export function initUserStats() {
-  console.log('XCoClaws: User Stats initialization');
   // Listen for messages from the injected script
   window.addEventListener('message', (event) => {
     if (event.data && event.data.type === 'X_STATS_DATA') {
-      console.log('XCoClaws: Received Stats Data', event.data.data);
       handleStatsData(event.data.data);
     }
   });
-
 
   // Observe DOM for new user cells
   const observer = new MutationObserver(() => {
