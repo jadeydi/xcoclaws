@@ -2,6 +2,20 @@
   // If already loaded, we don't want to re-hook fetch/XHR,
   // but we DO want to re-register the specific listeners below.
   const isFirstLoad = !window.__xvmNet;
+  const DEBUG = (() => {
+    try {
+      // 优先检查脚本标签上的 data-debug 属性
+      if (document.currentScript && document.currentScript.dataset.debug === 'true') {
+        return true;
+      }
+      return localStorage.getItem('XCOCLAWS_DEBUG') === 'true';
+    } catch (e) {
+      return false;
+    }
+  })();
+
+  const log = (...args) => DEBUG && console.log('%c[XCoClaws]', 'color: #1d9bf0; font-weight: bold;', ...args);
+  const debug = (...args) => DEBUG && console.debug('%c[XCoClaws]', 'color: #71767b;', ...args);
 
   if (isFirstLoad) {
     const reqSubs = []; // [{ matcher, fn }]
@@ -22,9 +36,9 @@
       // but for now let's just log matches.
       for (const sub of resSubs) {
         if (!sub.matcher.test(url)) continue;
-        console.debug(`XCoClaws: Match! [${source}] ${url}`);
+        debug(`Match! [${source}] ${url}`);
         try { sub.fn({ url, response, source }); } catch (e) {
-          console.error('XCoClaws: Subscriber error', e);
+          console.error('[XCoClaws] Subscriber error', e);
         }
       }
     }
@@ -110,17 +124,17 @@
   } else {
     // If already loaded, just reset existing subscribers to prepare for new ones
     window.__xvmNet._resetSubs();
-    console.log('XCoClaws: API Interceptor re-initialized');
+    debug('API Interceptor re-initialized');
   }
 
   // --- XCoClaws Specific Logic ---
-  console.log('XCoClaws: Registering GraphQL listeners');
+  debug('Registering GraphQL listeners');
 
   const GRAPHQL_RE = /\/i\/api\/graphql\//;
 
   function reportRateLimit(remaining, reset) {
     if (remaining !== null && reset !== null) {
-      console.debug(`XCoClaws: Rate Limit - Remaining: ${remaining}, Reset: ${reset}`);
+      debug(`Rate Limit - Remaining: ${remaining}, Reset: ${reset}`);
     }
   }
 
@@ -142,7 +156,7 @@
       else if (url.includes('/UserByScreenName')) queryName = 'UserByScreenName';
     } catch (e) { }
 
-    console.log(`XCoClaws: Intercepted ${queryName} Data`);
+    debug(`Intercepted ${queryName} Data`);
 
     const foundUsers = [];
     function findUsers(obj) {
@@ -178,7 +192,7 @@
     findUsers(data);
 
     if (foundUsers.length > 0) {
-      console.log(`XCoClaws: Found ${foundUsers.length} users in API response`);
+      debug(`Found ${foundUsers.length} users in API response`);
       window.postMessage({
         type: 'X_STATS_DATA',
         data: {
