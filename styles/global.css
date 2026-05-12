@@ -4,3 +4,8 @@
   background-color: rgba(99, 102, 241, 0.1) !important;
   transition: all 0.3s ease;
 }
+
+.not-following-highlight {
+  background-color: rgba(239, 68, 68, 0.1) !important; /* Subtle red background */
+  border-left: 4px solid #ef4444 !important; /* Red left border for clarity */
+}
