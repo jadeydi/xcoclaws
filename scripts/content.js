@@ -2,7 +2,7 @@ import { initMarkNonFollowers } from './markNonFollowers';
 import { initUserStats } from './userStats';
 import { scanNonFollowers, getScanStatus } from './scanNonFollowers';
 import { unfollowUsers } from './unfollow.js';
-import { setDebug, debug, log } from './logger';
+import { setDebug, debug } from './logger';
 
 
 
