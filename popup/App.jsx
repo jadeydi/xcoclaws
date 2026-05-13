@@ -76,7 +76,14 @@ function App() {
   }
 
   if (view === 'results') {
-    return <NonMutualView nonMutual={nonMutual} onBack={() => setView('main')} />;
+    return (
+      <NonMutualView
+        nonMutual={nonMutual}
+        onBack={() => setView('main')}
+        onRescan={handleScanNonFollowers}
+        scanning={scanning}
+      />
+    );
   }
 
   return (

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function NonMutualView({ nonMutual, onBack }) {
+function NonMutualView({ nonMutual, onBack, onRescan, scanning }) {
   const [selectedHandles, setSelectedHandles] = useState(new Set());
 
   const handleToggleUser = (handle) => {
@@ -42,14 +42,23 @@ function NonMutualView({ nonMutual, onBack }) {
       <header>
         <div className="header-top">
           <button onClick={onBack} className="back-btn">← 返回</button>
-          {selectedHandles.size > 0 && (
-            <div className="header-actions">
+          <div className="header-actions">
+            {selectedHandles.size > 0 ? (
               <button onClick={handleUnfollowSelected} className="action-btn danger mini unfollow-btn">
                 <span className="btn-icon">🚫</span>
                 取消关注 ({selectedHandles.size})
               </button>
-            </div>
-          )}
+            ) : (
+              <button
+                onClick={onRescan}
+                className={`action-btn secondary mini ${scanning ? 'loading' : ''}`}
+                disabled={scanning}
+              >
+                <span className="btn-icon">{scanning ? '⌛' : '🔄'}</span>
+                {scanning ? '正在扫描...' : '重新扫描'}
+              </button>
+            )}
+          </div>
         </div>
       </header>
 

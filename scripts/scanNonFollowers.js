@@ -42,7 +42,10 @@ export async function scanNonFollowers(limit = 5) {
         const followTexts = ['Follows you', '关注了你'];
         const followsYou = followTexts.some(text => cellText.includes(text));
 
-        if (!followsYou) {
+        const followingTexts = ['Following', '正在关注'];
+        const isFollowing = followingTexts.some(text => cellText.includes(text));
+
+        if (!followsYou && isFollowing) {
           // 提取信息
           const handleMatch = cellText.match(/@[\w_]+/);
           const handle = handleMatch ? handleMatch[0] : null;
