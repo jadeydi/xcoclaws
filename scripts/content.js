@@ -1,6 +1,7 @@
 import { initMarkNonFollowers } from './markNonFollowers';
 import { initUserStats } from './userStats';
 import { scanNonFollowers, getScanStatus } from './scanNonFollowers';
+import { unfollowUsers } from './unfollow.js';
 import { setDebug, debug, log } from './logger';
 
 
@@ -71,5 +72,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     return true; // Keep channel open for async response
   } else if (request.action === 'getScanStatus') {
     sendResponse(getScanStatus());
+  } else if (request.action === 'unfollowUsers') {
+    debug('Received unfollow request:', request.handles);
+    unfollowUsers(request.handles).then(result => {
+      sendResponse(result);
+    }).catch(err => {
+      sendResponse({ error: err.message });
+    });
+    return true;
   }
 });

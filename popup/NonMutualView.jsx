@@ -29,9 +29,7 @@ function NonMutualView({ nonMutual, onBack }) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'unfollowUsers',
           handles: Array.from(selectedHandles)
-        }, (response) => {
-          console.log('Unfollow response:', response);
-          alert('取消关注指令已发送');
+        }, () => {
         });
       });
     }
