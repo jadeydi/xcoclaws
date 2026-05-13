@@ -15,16 +15,18 @@
 .xcoclaws-stats {
   display: inline-flex;
   align-items: center;
-  margin-left: 8px;
-  font-size: 12px;
+  margin-left: 2px;
+  flex-shrink: 0;
+  font-size: 11px;
   color: #713f12;
   font-weight: 600;
   background: #fffee0;
-  padding: 1px 8px;
+  padding: 1px 10px;
   border-radius: 99px;
   vertical-align: middle;
   border: 1px solid #facc15;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  white-space: nowrap;
 }
 
 .xcoclaws-stat-item {

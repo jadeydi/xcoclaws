@@ -10,7 +10,9 @@ export function handleStatsData(message) {
       if (user.screen_name) {
         userStatsMap.set(user.screen_name.toLowerCase(), {
           followers: user.followers_count,
-          following: user.friends_count
+          following: user.friends_count,
+          is_following: user.is_following,
+          is_followed_by: user.is_followed_by
         });
       }
     });
@@ -29,13 +31,15 @@ function formatCount(num) {
 }
 
 export function updateAllUserCells() {
-  const userCells = document.querySelectorAll('[data-testid="UserCell"]');
-  userCells.forEach(cell => {
+  // Target both UserCell (lists) and User-Name (tweet headers/profiles)
+  const containers = document.querySelectorAll('[data-testid="UserCell"], [data-testid="User-Name"]');
+
+  containers.forEach(container => {
     // Extract screen name (handle)
     let screenName = '';
 
-    // Check all links or spans for handle pattern
-    const spans = cell.querySelectorAll('span');
+    // Check all links or spans for handle pattern (@handle)
+    const spans = container.querySelectorAll('span');
     for (const span of spans) {
       const text = span.innerText;
       if (text.startsWith('@') && text.length > 1) {
@@ -46,13 +50,13 @@ export function updateAllUserCells() {
 
     if (!screenName) {
       // Try to get from link href as fallback
-      const link = cell.querySelector('a[href^="/"]');
+      const link = container.querySelector('a[href^="/"]');
       if (link) {
         const parts = link.getAttribute('href').split('/');
         if (parts.length > 1) {
           const name = parts[1].toLowerCase();
           // Exclude known non-user paths
-          if (!['home', 'explore', 'notifications', 'messages', 'search', 'settings'].includes(name)) {
+          if (!['home', 'explore', 'notifications', 'messages', 'search', 'settings', 'i'].includes(name)) {
             screenName = name;
           }
         }
@@ -63,33 +67,34 @@ export function updateAllUserCells() {
 
     const stats = userStatsMap.get(screenName);
     if (stats) {
-      injectStats(cell, stats);
+      injectStats(container, stats);
     }
   });
 }
 
-function injectStats(cell, stats) {
+function injectStats(container, stats) {
   // Find the target container where we want to append the stats
-  // We prefer the name area flex container
   let target = null;
 
-  // Method 1: Look for data-testid="User-Name"
-  const nameContainer = cell.querySelector('[data-testid="User-Name"]');
+  // Find User-Name container (might be the container itself or nested)
+  const nameContainer = container.getAttribute('data-testid') === 'User-Name'
+    ? container
+    : container.querySelector('[data-testid="User-Name"]');
+
   if (nameContainer) {
-    // Inside User-Name, there's usually a flex row containing display name and badges
-    const flexRow = nameContainer.querySelector('div.r-18u37iz');
-    if (flexRow) {
-      target = flexRow;
+    // For timeline tweets, User-Name is often a flex row containing Name and Handle
+    // We want to append to this row so it appears after the handle/time.
+    if (nameContainer.classList.contains('r-18u37iz')) {
+      target = nameContainer;
     } else {
-      // Fallback to the first dir="ltr" inside User-Name
-      target = nameContainer.querySelector('[dir="ltr"]');
+      // Fallback: look for the first flex row inside (usually contains the name)
+      target = nameContainer.querySelector('div.r-18u37iz') || nameContainer.querySelector('[dir="ltr"]');
     }
   }
 
-  // Method 2: Fallback to the user's specific structure
+  // Method 2: Fallback to the user's specific structure (inside a link)
   if (!target) {
-    // Look for the flex container inside the link
-    const nameLink = cell.querySelector('a[role="link"] div.r-18u37iz');
+    const nameLink = container.querySelector('a[role="link"] div.r-18u37iz');
     if (nameLink) {
       target = nameLink;
     }
@@ -100,9 +105,9 @@ function injectStats(cell, stats) {
   // Check if already injected
   let statsEl = target.querySelector('.xcoclaws-stats');
   const statsHTML = `
-    <span class="xcoclaws-stat-item">Fol: <b>${formatCount(stats.followers)}</b></span>
+    <span class="xcoclaws-stat-item">Fing: <b>${formatCount(stats.following)}</b>&nbsp;${stats.is_following ? '🫡' : ''}</span>
     <span class="xcoclaws-stat-divider">·</span>
-    <span class="xcoclaws-stat-item">Fing: <b>${formatCount(stats.following)}</b></span>
+    <span class="xcoclaws-stat-item">Fol: <b>${formatCount(stats.followers)}</b>&nbsp;${stats.is_followed_by ? '👍' : ''}</span>
   `;
 
   if (statsEl) {

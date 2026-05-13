@@ -140,6 +140,7 @@
 
   function scanForTweets(data, url) {
     if (!data) return;
+    debug(`url`, url, `\n`, data);
 
     // Identify query name from URL
     let queryName = 'Unknown';
@@ -154,6 +155,11 @@
       else if (url.includes('/Followers')) queryName = 'Followers';
       else if (url.includes('/Following')) queryName = 'Following';
       else if (url.includes('/UserByScreenName')) queryName = 'UserByScreenName';
+      else if (url.includes('/HomeTimeline')) queryName = 'HomeTimeline';
+      else if (url.includes('/HomeLatestTimeline')) queryName = 'HomeLatestTimeline';
+      else if (url.includes('/TweetDetail')) queryName = 'TweetDetail';
+      else if (url.includes('/SearchTimeline')) queryName = 'SearchTimeline';
+      else if (url.includes('/ListLatestTweetsTimeline')) queryName = 'ListLatestTweetsTimeline';
     } catch (e) { }
 
     debug(`Intercepted ${queryName} Data`);
@@ -165,19 +171,27 @@
       // Handle GraphQL User object (has core and legacy)
       if (obj.legacy && (obj.core?.screen_name || obj.legacy.screen_name) && obj.legacy.followers_count !== undefined) {
         foundUsers.push({
+          id: obj.rest_id,
+          name: obj.core?.name || obj.legacy.name,
           screen_name: obj.core?.screen_name || obj.legacy.screen_name,
           followers_count: obj.legacy.followers_count,
-          friends_count: obj.legacy.friends_count || obj.legacy.following_count
+          friends_count: obj.legacy.friends_count || obj.legacy.following_count,
+          is_following: obj.relationship_perspectives?.following,
+          is_followed_by: obj.relationship_perspectives?.followed_by
         });
         return; // Found a user, don't recurse further into this object
       }
 
-      // Handle legacy structures or flattened objects
+      // Handle legacy structures or flattened objects (v1.1 API or others)
       if (obj.screen_name && obj.followers_count !== undefined) {
         foundUsers.push({
+          id: obj.id_str || obj.id,
+          name: obj.name,
           screen_name: obj.screen_name,
           followers_count: obj.followers_count,
-          friends_count: obj.friends_count || obj.following_count
+          friends_count: obj.friends_count || obj.following_count,
+          is_following: obj.following, // In v1.1 these are usually direct properties
+          is_followed_by: obj.followed_by
         });
         return;
       }
@@ -192,10 +206,11 @@
     findUsers(data);
 
     if (foundUsers.length > 0) {
-      debug(`Found ${foundUsers.length} users in API response`);
+      debug(`Found ${foundUsers.length} users in ${queryName} response`);
       window.postMessage({
         type: 'X_STATS_DATA',
         data: {
+          query: queryName,
           users: foundUsers
         }
       }, '*');
