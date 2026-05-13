@@ -42,12 +42,25 @@ header {
   gap: 8px;
 }
 
+.logo-text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
 .logo h1 {
   font-size: 1.25rem;
   font-weight: 700;
   background: var(--primary-gradient);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+}
+
+.version {
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-weight: 400;
+  opacity: 0.7;
 }
 
 .icon-btn {

@@ -46,15 +46,6 @@ function App() {
     chrome.storage.local.set({ lastView: view });
   }, [view]);
 
-  const handleExtract = async () => {
-    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    chrome.tabs.sendMessage(tab.id, { action: 'extractData' }, (response) => {
-      console.log('Data extracted:', response);
-      if (response) {
-        alert('数据提取成功！查看控制台。');
-      }
-    });
-  }
 
   const handleScanNonFollowers = async () => {
     setScanning(true);
@@ -93,7 +84,10 @@ function App() {
       <header>
         <div className="logo">
           <span className="logo-icon">✨</span>
-          <h1>XCoClaws</h1>
+          <div className="logo-text">
+            <h1>XCoClaws</h1>
+            <span className="version">v1.0.0</span>
+          </div>
         </div>
         <button onClick={handleSettings} className="icon-btn">⚙️</button>
       </header>
@@ -118,17 +112,8 @@ function App() {
             <span className="btn-icon">{scanning ? '⌛' : '👤'}</span>
             {scanning ? '正在扫描...' : '单向关注扫描'}
           </button>
-
-          <button onClick={handleExtract} className="action-btn primary">
-            <span className="btn-icon">⚡</span>
-            快速提取
-          </button>
         </div>
       </main>
-
-      <footer>
-        <p>Version 1.0.0</p>
-      </footer>
     </div>
   )
 }
