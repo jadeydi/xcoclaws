@@ -19,7 +19,7 @@ function App() {
         }
 
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (tab?.id && (tab.url.includes('x.com') || tab.url.includes('twitter.com'))) {
+        if (tab?.id && (tab?.url?.includes('x.com') || tab?.url?.includes('twitter.com'))) {
           chrome.tabs.sendMessage(tab.id, { action: 'getScanStatus' }, (response) => {
             if (response) {
               setScanning(response.isScanning);
