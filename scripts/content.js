@@ -1,9 +1,10 @@
 import { initMarkNonFollowers } from './markNonFollowers';
 import { initUserStats } from './userStats';
+import { scanNonFollowers, getScanStatus } from './scanNonFollowers';
+import { unfollowUsers } from './unfollow.js';
+import { setDebug, debug } from './logger';
 
-let DEBUG = false;
-export let log = (...args) => DEBUG && console.log('%c[XCoClaws]', 'color: #1d9bf0; font-weight: bold;', ...args);
-export let debug = (...args) => DEBUG && console.debug('%c[XCoClaws]', 'color: #71767b;', ...args);
+
 
 // 注入 API 拦截器
 const injectScript = (debugEnabled) => {
@@ -30,11 +31,13 @@ const init = async () => {
 
   // 优先级：localStorage (手动) > chrome.storage (设置页)
   const localOverride = localStorage.getItem('XCOCLAWS_DEBUG') === 'true';
-  DEBUG = localOverride || settings.debugMode === true;
+  const debugEnabled = localOverride || settings.debugMode === true;
+
+  setDebug(debugEnabled);
 
   // 更新日志函数的闭包引用（如果其他模块已经引用了旧的，可能需要其他方式更新）
   // 但在这里我们直接在 init 后运行其他初始化
-  injectScript(DEBUG);
+  injectScript(debugEnabled);
 
   debug('Content Script Loaded');
 
@@ -58,5 +61,24 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       description: metaDescription,
       url: window.location.href
     });
+  } else if (request.action === 'scanNonFollowers') {
+    debug('Scanning non-followers...');
+    // TODO replace 20
+    scanNonFollowers(20).then(result => {
+      sendResponse(result);
+    }).catch(err => {
+      sendResponse({ error: err.message });
+    });
+    return true; // Keep channel open for async response
+  } else if (request.action === 'getScanStatus') {
+    sendResponse(getScanStatus());
+  } else if (request.action === 'unfollowUsers') {
+    debug('Received unfollow request:', request.handles);
+    unfollowUsers(request.handles).then(result => {
+      sendResponse(result);
+    }).catch(err => {
+      sendResponse({ error: err.message });
+    });
+    return true;
   }
 });
