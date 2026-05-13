@@ -105,9 +105,9 @@ function injectStats(container, stats) {
   // Check if already injected
   let statsEl = target.querySelector('.xcoclaws-stats');
   const statsHTML = `
-    <span class="xcoclaws-stat-item">Fing: <b>${formatCount(stats.following)}</b>&nbsp;${stats.is_following ? '🫡' : ''}</span>
+    <span class="xcoclaws-stat-item">Fing: <b>${formatCount(stats.following)}</b>&nbsp;${stats.is_following ? '👍' : ''}</span>
     <span class="xcoclaws-stat-divider">·</span>
-    <span class="xcoclaws-stat-item">Fol: <b>${formatCount(stats.followers)}</b>&nbsp;${stats.is_followed_by ? '👍' : ''}</span>
+    <span class="xcoclaws-stat-item">Fol: <b>${formatCount(stats.followers)}</b>&nbsp;${stats.is_followed_by ? '🫡' : ''}</span>
   `;
 
   if (statsEl) {
