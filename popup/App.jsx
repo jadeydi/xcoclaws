@@ -7,7 +7,7 @@ function App() {
   const [view, setView] = useState('main'); // 'main' or 'results'
   const [nonMutual, setNonMutual] = useState([]);
   const [error, setError] = useState(null);
-  const version = globalThis.chrome?.runtime?.getManifest?.().version;
+  const version = chrome?.runtime?.getManifest?.()?.version || '1.0.3';
 
   // 当 Popup 打开时，向 Content Script 查询当前的扫描状态
   useEffect(() => {
@@ -94,20 +94,14 @@ function App() {
           <span className="logo-icon">✨</span>
           <div className="logo-text">
             <h1>XCoClaws</h1>
-            <span className="version">v{version || 'unknown'}</span>
+            <span className="version">v{version}</span>
           </div>
         </div>
         <button onClick={handleSettings} className="icon-btn">⚙️</button>
       </header>
 
       <main>
-        <div className="status-card">
-          <div className="status-info">
-            <p className="label">当前状态</p>
-            <p className="value active">运行中</p>
-          </div>
-          <div className="pulse-ring"></div>
-        </div>
+
 
         {error && <div className="error-banner">{error}</div>}
 
