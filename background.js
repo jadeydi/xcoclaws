@@ -6,8 +6,7 @@ chrome.runtime.onInstalled.addListener(() => {
   // 初始化默认设置
   chrome.storage.sync.set({ 
     settings: {
-      theme: 'dark',
-      autoExtract: false
+      theme: 'dark'
     }
   });
 });

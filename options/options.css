@@ -6,3 +6,4 @@ label { display: block; margin-bottom: 5px; font-weight: bold; }
 input[type="text"] { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
 button { background: #6366f1; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
 button:hover { background: #4f46e5; }
+.hint { font-size: 0.85rem; color: #666; font-weight: normal; margin-top: 4px; line-height: 1.4; }

@@ -1,10 +1,8 @@
-import { initMarkNonFollowers } from './markNonFollowers';
-import { initUserStats } from './userStats';
+import { initMarkNonFollowers, setHighlightEnabled } from './markNonFollowers';
+import { initUserStats, setStatsEnabled } from './userStats';
 import { scanNonFollowers, getScanStatus } from './scanNonFollowers';
 import { unfollowUsers } from './unfollow.js';
 import { setDebug, debug } from './logger';
-
-
 
 // 注入 API 拦截器
 const injectScript = (debugEnabled) => {
@@ -24,26 +22,57 @@ const injectScript = (debugEnabled) => {
   }
 };
 
+// 注入 API 拦截器 (立即执行以捕获最早的请求)
+const localOverride = typeof localStorage !== 'undefined' && localStorage.getItem('XCOCLAWS_DEBUG') === 'true';
+injectScript(localOverride);
+
 // 初始化逻辑
 const init = async () => {
   // 从存储中获取设置
-  const settings = await chrome.storage.sync.get(['debugMode']);
+  const settings = await chrome.storage.sync.get(['debugMode', 'highlightNonMutual', 'showUserStats']);
 
-  // 优先级：localStorage (手动) > chrome.storage (设置页)
-  const localOverride = localStorage.getItem('XCOCLAWS_DEBUG') === 'true';
   const debugEnabled = localOverride || settings.debugMode === true;
+  if (debugEnabled && !localOverride) {
+    // 如果 storage 中开启了调试但 localOverride 没开，我们需要重新注入或者更新状态
+    // 不过 injectScript 已经运行了，再次调用会 handle 重复逻辑
+    injectScript(true);
+  }
 
   setDebug(debugEnabled);
+  setHighlightEnabled(settings.highlightNonMutual !== false); // 默认为 true
+  setStatsEnabled(settings.showUserStats !== false); // 默认为 true
 
-  // 更新日志函数的闭包引用（如果其他模块已经引用了旧的，可能需要其他方式更新）
-  // 但在这里我们直接在 init 后运行其他初始化
-  injectScript(debugEnabled);
+  // 监听存储变化，实时更新设置
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'sync') {
+      if (changes.debugMode) {
+        setDebug(changes.debugMode.newValue);
+      }
+      if (changes.highlightNonMutual) {
+        setHighlightEnabled(changes.highlightNonMutual.newValue);
+      }
+      if (changes.showUserStats) {
+        setStatsEnabled(changes.showUserStats.newValue);
+      }
+    }
+  });
 
   debug('Content Script Loaded');
 
-  // 初始化功能
-  initMarkNonFollowers();
-  initUserStats();
+  // 等待 body 就绪后初始化 DOM 相关功能
+  if (document.body) {
+    initMarkNonFollowers();
+    initUserStats();
+  } else {
+    const observer = new MutationObserver((mutations, obs) => {
+      if (document.body) {
+        initMarkNonFollowers();
+        initUserStats();
+        obs.disconnect();
+      }
+    });
+    observer.observe(document.documentElement, { childList: true });
+  }
 };
 
 init();
@@ -62,9 +91,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       url: window.location.href
     });
   } else if (request.action === 'scanNonFollowers') {
-    debug('Scanning non-followers...');
-    // TODO replace 20
-    scanNonFollowers(20).then(result => {
+    debug('Scanning non-followers with limit:', request.limit);
+    scanNonFollowers(request.limit || 20).then(result => {
       sendResponse(result);
     }).catch(err => {
       sendResponse({ error: err.message });

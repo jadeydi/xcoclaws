@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "XCoClaws",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "description": "Smart X Assistant",
   "permissions": [
     "storage",
@@ -29,7 +29,8 @@
       ],
       "css": [
         "styles/global.css"
-      ]
+      ],
+      "run_at": "document_start"
     }
   ],
   "options_page": "options/options.html",

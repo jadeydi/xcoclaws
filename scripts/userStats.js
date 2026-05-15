@@ -1,8 +1,20 @@
-/**
- * Display followers and following count next to the user name
- */
-
 const userStatsMap = new Map();
+let isStatsEnabled = true;
+
+export function setStatsEnabled(enabled) {
+  isStatsEnabled = enabled;
+  if (!enabled) {
+    clearStats();
+  } else {
+    updateAllUserCells();
+  }
+}
+
+export function clearStats() {
+  document.querySelectorAll('.xcoclaws-stats').forEach(el => {
+    el.remove();
+  });
+}
 
 export function handleStatsData(message) {
   if (message && message.users && Array.isArray(message.users)) {
@@ -31,6 +43,8 @@ function formatCount(num) {
 }
 
 export function updateAllUserCells() {
+  if (!isStatsEnabled) return;
+
   // Target both UserCell (lists) and User-Name (tweet headers/profiles)
   const containers = document.querySelectorAll('[data-testid="UserCell"], [data-testid="User-Name"]');
 

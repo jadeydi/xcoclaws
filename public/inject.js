@@ -169,7 +169,7 @@
       if (!obj || typeof obj !== 'object') return;
 
       // Handle GraphQL User object (has core and legacy)
-      if (obj.legacy && (obj.core?.screen_name || obj.legacy.screen_name) && obj.legacy.followers_count !== undefined) {
+      if (obj.legacy && obj.core?.screen_name && obj.legacy.followers_count !== undefined) {
         foundUsers.push({
           id: obj.rest_id,
           name: obj.core?.name || obj.legacy.name,
@@ -180,20 +180,6 @@
           is_followed_by: obj.relationship_perspectives?.followed_by
         });
         return; // Found a user, don't recurse further into this object
-      }
-
-      // Handle legacy structures or flattened objects (v1.1 API or others)
-      if (obj.screen_name && obj.followers_count !== undefined) {
-        foundUsers.push({
-          id: obj.id_str || obj.id,
-          name: obj.name,
-          screen_name: obj.screen_name,
-          followers_count: obj.followers_count,
-          friends_count: obj.friends_count || obj.following_count,
-          is_following: obj.following, // In v1.1 these are usually direct properties
-          is_followed_by: obj.followed_by
-        });
-        return;
       }
 
       for (const key in obj) {
