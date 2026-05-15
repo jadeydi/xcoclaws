@@ -75,9 +75,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       url: window.location.href
     });
   } else if (request.action === 'scanNonFollowers') {
-    debug('Scanning non-followers...');
-    // TODO replace 20
-    scanNonFollowers(20).then(result => {
+    debug('Scanning non-followers with limit:', request.limit);
+    scanNonFollowers(request.limit || 20).then(result => {
       sendResponse(result);
     }).catch(err => {
       sendResponse({ error: err.message });

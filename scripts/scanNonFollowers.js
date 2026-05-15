@@ -13,7 +13,7 @@ export function getScanStatus() {
 /**
  * 扫描单向关注用户（我关注了，但没关注我的）
  */
-export async function scanNonFollowers(limit = 5) {
+export async function scanNonFollowers(limit = 10) {
   if (isScanning) {
     return { error: '扫描正在进行中...' };
   }

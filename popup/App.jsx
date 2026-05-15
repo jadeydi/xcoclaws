@@ -8,15 +8,19 @@ function App() {
   const [nonMutual, setNonMutual] = useState([]);
   const [error, setError] = useState(null);
   const version = chrome?.runtime?.getManifest?.()?.version || '1.0.3';
+  const [scanLimit, setScanLimit] = useState(20);
 
   // 当 Popup 打开时，向 Content Script 查询当前的扫描状态
   useEffect(() => {
     const checkStatus = async () => {
       try {
-        // 先从本地存储加载上一次的 View
-        const stored = await chrome.storage.local.get(['lastView']);
+        // 先从本地存储加载上一次的 View 和 Limit
+        const stored = await chrome.storage.local.get(['lastView', 'scanLimit']);
         if (stored.lastView) {
           setView(stored.lastView);
+        }
+        if (stored.scanLimit) {
+          setScanLimit(stored.scanLimit);
         }
 
         const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -42,10 +46,10 @@ function App() {
     checkStatus();
   }, []);
 
-  // 监听 view 变化并保存
+  // 监听 view/limit 变化并保存
   useEffect(() => {
-    chrome.storage.local.set({ lastView: view });
-  }, [view]);
+    chrome.storage.local.set({ lastView: view, scanLimit: scanLimit });
+  }, [view, scanLimit]);
 
 
   const handleScanNonFollowers = async () => {
@@ -59,7 +63,7 @@ function App() {
       return;
     }
 
-    chrome.tabs.sendMessage(tab.id, { action: 'scanNonFollowers' }, (response) => {
+    chrome.tabs.sendMessage(tab.id, { action: 'scanNonFollowers', limit: scanLimit }, (response) => {
       setScanning(false);
       if (response && response.users) {
         setNonMutual(response.users);
@@ -105,6 +109,24 @@ function App() {
 
         {error && <div className="error-banner">{error}</div>}
 
+        <div className="input-group">
+          <div className="usage-tip">
+            💡 请先确保你已进入 X.com 的 <b>Following</b> (正在关注) 列表页面，否则无法获取数据。
+          </div>
+          <label htmlFor="scanLimit">扫描人数 (最多一次 200 个)</label>
+          <div className="input-wrapper">
+            <input
+              id="scanLimit"
+              type="number"
+              min="1"
+              max="200"
+              value={scanLimit}
+              onChange={(e) => setScanLimit(parseInt(e.target.value) || 1)}
+            />
+            <span className="input-unit">人</span>
+          </div>
+        </div>
+
         <div className="action-grid">
           <button
             onClick={handleScanNonFollowers}
@@ -112,7 +134,7 @@ function App() {
             disabled={scanning}
           >
             <span className="btn-icon">{scanning ? '⌛' : '👤'}</span>
-            {scanning ? '正在扫描...' : '单向关注扫描'}
+            {scanning ? '正在扫描...' : '开始单向关注扫描'}
           </button>
         </div>
       </main>
