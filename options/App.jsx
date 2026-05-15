@@ -33,7 +33,7 @@ function App() {
             onChange={(e) => setHighlightNonMutual(e.target.checked)}
           /> 高亮标记未回关的用户
         </label>
-        <p className="hint">在关闭 (Following) 页面上自动用淡红色背景标出没有关注你的用户。</p>
+        <p className="hint">在关注 (Following) 页面上自动用淡红色背景标出没有关注你的用户。</p>
       </div>
 
       <div className="setting">
