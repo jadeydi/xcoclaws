@@ -1,10 +1,8 @@
-import { initMarkNonFollowers } from './markNonFollowers';
-import { initUserStats } from './userStats';
+import { initMarkNonFollowers, setHighlightEnabled } from './markNonFollowers';
+import { initUserStats, setStatsEnabled } from './userStats';
 import { scanNonFollowers, getScanStatus } from './scanNonFollowers';
 import { unfollowUsers } from './unfollow.js';
 import { setDebug, debug } from './logger';
-
-
 
 // 注入 API 拦截器
 const injectScript = (debugEnabled) => {
@@ -27,16 +25,31 @@ const injectScript = (debugEnabled) => {
 // 初始化逻辑
 const init = async () => {
   // 从存储中获取设置
-  const settings = await chrome.storage.sync.get(['debugMode']);
+  const settings = await chrome.storage.sync.get(['debugMode', 'highlightNonMutual', 'showUserStats']);
 
   // 优先级：localStorage (手动) > chrome.storage (设置页)
   const localOverride = localStorage.getItem('XCOCLAWS_DEBUG') === 'true';
   const debugEnabled = localOverride || settings.debugMode === true;
 
   setDebug(debugEnabled);
+  setHighlightEnabled(settings.highlightNonMutual !== false); // 默认为 true
+  setStatsEnabled(settings.showUserStats !== false); // 默认为 true
 
-  // 更新日志函数的闭包引用（如果其他模块已经引用了旧的，可能需要其他方式更新）
-  // 但在这里我们直接在 init 后运行其他初始化
+  // 监听存储变化，实时更新设置
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (area === 'sync') {
+      if (changes.debugMode) {
+        setDebug(changes.debugMode.newValue);
+      }
+      if (changes.highlightNonMutual) {
+        setHighlightEnabled(changes.highlightNonMutual.newValue);
+      }
+      if (changes.showUserStats) {
+        setStatsEnabled(changes.showUserStats.newValue);
+      }
+    }
+  });
+
   injectScript(debugEnabled);
 
   debug('Content Script Loaded');

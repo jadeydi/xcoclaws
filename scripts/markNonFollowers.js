@@ -1,7 +1,13 @@
+let isHighlightEnabled = true;
+
 /**
  * 标记没有关注你的用户
  */
 export function markNonFollowers() {
+  if (!isHighlightEnabled) {
+    return;
+  }
+
   // 只在 following 页面运行
   if (!window.location.pathname.endsWith('/following')) {
     return;
@@ -33,6 +39,30 @@ export function markNonFollowers() {
     // 标记为已检查
     container.setAttribute('data-xcoclaws-checked', 'true');
   });
+}
+
+/**
+ * 清除所有高亮标记
+ */
+export function clearHighlights() {
+  document.querySelectorAll('.not-following-highlight').forEach(el => {
+    el.classList.remove('not-following-highlight');
+  });
+  document.querySelectorAll('[data-xcoclaws-checked]').forEach(el => {
+    el.removeAttribute('data-xcoclaws-checked');
+  });
+}
+
+/**
+ * 设置是否启用高亮
+ */
+export function setHighlightEnabled(enabled) {
+  isHighlightEnabled = enabled;
+  if (!enabled) {
+    clearHighlights();
+  } else {
+    markNonFollowers();
+  }
 }
 
 /**
